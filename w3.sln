@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31521.260
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "w3", "w3\w3.csproj", "{2CCC55EE-4D51-4E3B-AB81-078B4E4D2254}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "w3", "src\w3\w3.csproj", "{2CCC55EE-4D51-4E3B-AB81-078B4E4D2254}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
