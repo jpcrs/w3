@@ -7,11 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using w3.Model;
 
-namespace w3
+namespace w3.Window
 {
     public class WindowList
     {
-
         private bool IsCloacked(IntPtr hwnd)
         {
             Win32.DwmGetWindowAttribute(hwnd, (int)DwmWindowAttribute.DWMWA_CLOAKED, out bool isCloacked, Marshal.SizeOf(typeof(bool)));
