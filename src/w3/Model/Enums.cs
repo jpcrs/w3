@@ -12,6 +12,12 @@ namespace w3.Model
         public int Right;       // x position of lower-right corner
         public int Bottom;      // y position of lower-right corner
     }
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+        public int X;
+        public int Y;
+    }
 
     [Flags]
     public enum DwmWindowAttribute : uint
@@ -32,5 +38,24 @@ namespace w3.Model
         DWMWA_CLOAKED,
         DWMWA_FREEZE_REPRESENTATION,
         DWMWA_LAST
+    }
+
+    public enum ShowWindowEnum
+    {
+        Hide = 0,
+        Normal = 1, ShowMinimized = 2, ShowMaximized = 3,
+        Maximize = 3, ShowNormalNoActivate = 4, Show = 5,
+        Minimize = 6, ShowMinNoActivate = 7, ShowNoActivate = 8,
+        Restore = 9, ShowDefault = 10, ForceMinimized = 11
+    };
+
+    public struct Windowplacement
+    {
+        public int length;
+        public int flags;
+        public int showCmd;
+        public System.Drawing.Point ptMinPosition;
+        public System.Drawing.Point ptMaxPosition;
+        public System.Drawing.Rectangle rcNormalPosition;
     }
 }

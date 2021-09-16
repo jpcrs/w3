@@ -56,8 +56,8 @@ namespace w3.Window
                 if (!Win32.IsWindowVisible(handle))
                     return true;
 
-                if (Win32.IsIconic(handle))
-                    return true;
+                //if (Win32.IsIconic(handle))
+                //    return true;
 
                 if (IsCloacked(handle))
                     return true;

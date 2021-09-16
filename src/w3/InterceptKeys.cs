@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using w3.Model;
+using w3.Window;
 
 namespace w3
 {
-    public class InterceptKeysOld
+    public class InterceptKeys
     {
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
@@ -14,6 +18,7 @@ namespace w3
         private static LowLevelKeyboardProc _proc = HookCallback;
         public static IntPtr _hookID = IntPtr.Zero;
         private static bool WinDown = false;
+        private static WindowList windowList = new WindowList();
 
         public static IntPtr SetHook(LowLevelKeyboardProc proc)
         {
@@ -28,6 +33,7 @@ namespace w3
 
         public static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
+
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYUP)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
@@ -44,10 +50,45 @@ namespace w3
                     WinDown = true;
                 }
 
-                Console.WriteLine($"Code: {nCode} Param: {(Keys)wParam} Key: {(Keys)vkCode}");
-                if (Keys.A == (Keys)vkCode && WinDown)
+                var windows = windowList.GetWindows().OrderBy(x => x.Handle).ToList();
+                if (Keys.L == (Keys)vkCode && WinDown)
                 {
-                    Console.WriteLine((Keys)vkCode);
+                    var next = (windows.FindIndex(x => x.Handle == Win32.GetForegroundWindow())+1) % windows.Count;
+                    Windowplacement placement = new Windowplacement();
+                    Win32.GetWindowPlacement(windows[next].Handle, ref placement);
+                    if (placement.showCmd == 2)
+                    {
+                        //the window is hidden so we restore it
+                        Win32.ShowWindow(windows[next].Handle, ShowWindowEnum.Restore);
+                    }
+                    Win32.SetForegroundWindow(windows[next].Handle);
+                    return (IntPtr)1;
+                }
+                if (Keys.O == (Keys)vkCode && WinDown)
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/C \"tools\\TurnLockOnOff.bat\"",
+                        Verb = "runas"
+                    };
+
+                    Process.Start(startInfo)?.WaitForExit();
+                }
+                if (Keys.H == (Keys)vkCode && WinDown)
+                {
+                    var prev = windows.FindIndex(x => x.Handle == Win32.GetForegroundWindow()) - 1 < 0 
+                        ? windows.Count - 1
+                        : windows.FindIndex(x => x.Handle == Win32.GetForegroundWindow()) - 1;
+
+                    Windowplacement placement = new Windowplacement();
+                    Win32.GetWindowPlacement(windows[prev].Handle, ref placement);
+                    if (placement.showCmd == 2)
+                    {
+                        //the window is hidden so we restore it
+                        Win32.ShowWindow(windows[prev].Handle, ShowWindowEnum.Restore);
+                    }
+                    Win32.SetForegroundWindow(windows[prev].Handle);
                     return (IntPtr)1;
                 }
             }
