@@ -16,9 +16,18 @@ foreach (var win in windows)
 }
 
 var edgePtr = windows.FirstOrDefault(x => x.Name.Contains("Edge"))?.Handle ?? IntPtr.Zero;
+DesktopManager.GoToDesktopNumber(1);
+foreach(var num in Enumerable.Range(0, 10))
+{
+    var desktopIdentifier = DesktopManager.GetDesktopIdByNumber(num);
 
-var desktop = new VirtualDesktopManager();
-Console.WriteLine($"DesktopId: {desktop.GetWindowDesktopId(edgePtr)}");
+    if (desktopIdentifier == Guid.Parse("cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd"))
+    {
+        //DesktopManager.Cre
+    }
+}
+//var desktop = new VirtualDesktopManager();
+//Console.WriteLine($"DesktopId: {desktop.GetWindowDesktopId(edgePtr)}");
 
 InterceptKeys._hookID = InterceptKeys.SetHook(InterceptKeys.HookCallback);
 Application.Run();
