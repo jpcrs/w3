@@ -47,6 +47,8 @@ namespace w3
         public static extern bool IsIconic(IntPtr hWnd);
         [DllImport("user32.dll", SetLastError = true)]
         public static extern System.UInt32 GetWindowLong(IntPtr hWnd, int nIndex);
+        [DllImport("user32.dll")]
+        public static extern short GetKeyState(int nVirtKey);
 
         public delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
     }

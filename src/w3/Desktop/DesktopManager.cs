@@ -33,5 +33,8 @@ namespace w3.Desktop
 
         [DllImport("tools/VirtualDesktopAccessor.dll")]
         public static extern bool MoveWindowToDesktopNumber(IntPtr window, int number);
+
+        [DllImport("tools/VirtualDesktopAccessor.dll")]
+        public static extern IntPtr ViewGetFocused();
     }
 }

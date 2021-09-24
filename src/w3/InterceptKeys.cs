@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using w3.Desktop;
 using w3.Model;
 using w3.Window;
 
@@ -19,6 +21,7 @@ namespace w3
         public static IntPtr _hookID = IntPtr.Zero;
         private static bool WinDown = false;
         private static WindowList windowList = new WindowList();
+        private static VirtualDesktopManager manager = new();
 
         public static IntPtr SetHook(LowLevelKeyboardProc proc)
         {
@@ -51,6 +54,20 @@ namespace w3
                 }
 
                 var windows = windowList.GetWindows().OrderBy(x => x.Handle).ToList();
+
+                if (vkCode >= 48 && vkCode <= 57)
+                {
+                    if (Convert.ToBoolean(Win32.GetKeyState(16) & 0x8000))
+                    {
+                        manager.MoveWindowToDesktop(vkCode == 48 ? 9 : vkCode-49);
+                        return (IntPtr)1;
+                    }
+                    manager.GoToDesktop(vkCode == 48 ? 9 : vkCode-49);
+                    var windowToFocus = windowList.GetWindows().FirstOrDefault();
+                    Win32.SetForegroundWindow(windowToFocus?.Handle ?? Win32.GetForegroundWindow());
+                    return (IntPtr)1;
+                }
+
                 if (Keys.L == (Keys)vkCode && WinDown)
                 {
                     var next = (windows.FindIndex(x => x.Handle == Win32.GetForegroundWindow())+1) % windows.Count;

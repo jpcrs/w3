@@ -7,70 +7,74 @@ using System.Threading.Tasks;
 
 namespace w3.Desktop
 {
-    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("a5cd92ff-29be-454c-8d04-d82879fb3f1b")]
-    [System.Security.SuppressUnmanagedCodeSecurity]
-    public interface IVirtualDesktopManager
-    {
-        [PreserveSig]
-        int IsWindowOnCurrentVirtualDesktop([In]IntPtr TopLevelWindow, [Out]out int OnCurrentDesktop);
+    [ComImport]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("F31574D6-B682-4CDC-BD56-1827860ABEC6")]
+	public interface IVirtualDesktopManagerInternal
+	{
+		int GetCount();
+		void MoveViewToDesktop(IntPtr view, Guid desktop);
+		bool CanViewMoveDesktops(IntPtr view);
+		Guid GetCurrentDesktop();
+		void GetDesktops(out IObjectArray desktops);
+		[PreserveSig]
+		int GetAdjacentDesktop(Guid from, int direction, out Guid desktop);
+		void SwitchDesktop(IVirtualDesktop desktop);
+		Guid CreateDesktop();
+		void RemoveDesktop(Guid desktop, Guid fallback);
+		Guid FindDesktop(ref Guid desktopid);
+	}
 
-        [PreserveSig]
-        int GetWindowDesktopId([In]IntPtr TopLevelWindow, [Out]out Guid CurrentDesktop);
+	[ComImport]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("6D5140C1-7436-11CE-8034-00AA006009FA")]
+	internal interface IServiceProvider10
+	{
+		[return: MarshalAs(UnmanagedType.IUnknown)]
+		object QueryService(ref Guid service, ref Guid riid);
+	}
 
-        [PreserveSig]
-        int MoveWindowToDesktop([In]IntPtr TopLevelWindow, [MarshalAs(UnmanagedType.LPStruct)] [In]Guid CurrentDesktop);
-    }
+	[ComImport]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("FF72FFDD-BE7E-43FC-9C03-AD81681E88E4")]
+	public interface IVirtualDesktop
+	{
+		bool IsViewVisible(IntPtr view);
+		Guid GetId();
+	}
 
-    [ComImport, Guid("aa509086-5ca9-4c25-8f95-589d3c07b48a")]
-    public class CVirtualDesktopManager
-    {
-
-    }
+	[ComImport]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("92CA9DCD-5622-4BBA-A805-5E9F541BD8C9")]
+	public interface IObjectArray
+	{
+		void GetCount(out int count);
+		void GetAt(int index, ref Guid iid, [MarshalAs(UnmanagedType.Interface)]out object obj);
+	}
 
     public class VirtualDesktopManager
     {
+		private IVirtualDesktopManagerInternal VirtualDesktopManagerInternal;
         public VirtualDesktopManager()
         {
-            cmanager = new CVirtualDesktopManager();
-            manager = (IVirtualDesktopManager)cmanager;
-        }
-        ~VirtualDesktopManager()
-        {
-            manager = null;
-            cmanager = null;
-        }
-        private CVirtualDesktopManager cmanager = null;
-        private IVirtualDesktopManager manager;
-
-        public bool IsWindowOnCurrentVirtualDesktop(IntPtr TopLevelWindow)
-        {
-            int result;
-            int hr;
-            if ((hr = manager.IsWindowOnCurrentVirtualDesktop(TopLevelWindow, out result)) != 0)
-            {
-                Marshal.ThrowExceptionForHR(hr);
-            }
-            return result != 0;
+			var shell = (IServiceProvider10)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("C2F03A33-21F5-47FA-B4BB-156362A2F239")));
+			VirtualDesktopManagerInternal = (IVirtualDesktopManagerInternal)shell.QueryService(new Guid("C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B"), typeof(IVirtualDesktopManagerInternal).GUID);
         }
 
-        public Guid GetWindowDesktopId(IntPtr TopLevelWindow)
+		public void InitDesktops()
         {
-            Guid result;
-            int hr;
-            if ((hr = manager.GetWindowDesktopId(TopLevelWindow, out result)) != 0)
+			while (VirtualDesktopManagerInternal.GetCount() < 10)
             {
-                Marshal.ThrowExceptionForHR(hr);
+				VirtualDesktopManagerInternal.CreateDesktop();
             }
-            return result;
         }
 
-        public void MoveWindowToDesktop(IntPtr TopLevelWindow, Guid CurrentDesktop)
+		public void GoToDesktop(int index)
         {
-            int hr;
-            if ((hr = manager.MoveWindowToDesktop(TopLevelWindow, CurrentDesktop)) != 0)
-            {
-                Marshal.ThrowExceptionForHR(hr);
-            }
+			DesktopManager.GoToDesktopNumber(index);
         }
+
+		public void MoveWindowToDesktop(int index)
+			=> DesktopManager.MoveWindowToDesktopNumber(DesktopManager.ViewGetFocused(), index);
     }
 }
