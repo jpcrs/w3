@@ -19,9 +19,8 @@ namespace w3
         private const int WM_KEYUP = 0x0101;
         private static LowLevelKeyboardProc _proc = HookCallback;
         public static IntPtr _hookID = IntPtr.Zero;
-        private static bool WinDown = false;
-        private static WindowList windowList = new WindowList();
-        private static VirtualDesktopManager manager = new();
+        private static readonly WindowList windowList = new();
+        private static readonly VirtualDesktopManager manager = new();
 
         public static IntPtr SetHook(LowLevelKeyboardProc proc)
         {
@@ -36,24 +35,14 @@ namespace w3
 
         public static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-
-            if (nCode >= 0 && wParam == (IntPtr)WM_KEYUP)
-            {
-                int vkCode = Marshal.ReadInt32(lParam);
-                if ((Keys)vkCode == Keys.LWin)
-                {
-                    WinDown = false;
-                }
-            }
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
-                if ((Keys)vkCode == Keys.LWin)
-                {
-                    WinDown = true;
-                }
-
                 var windows = windowList.GetWindows().OrderBy(x => x.Handle).ToList();
+                if (!Convert.ToBoolean(Win32.GetKeyState(91) & 0x8000))
+                {
+                    return IntPtr.Zero;
+                }
 
                 if (vkCode >= 48 && vkCode <= 57)
                 {
@@ -68,20 +57,38 @@ namespace w3
                     return (IntPtr)1;
                 }
 
-                if (Keys.L == (Keys)vkCode && WinDown)
+                if (Keys.L == (Keys)vkCode)
                 {
                     var next = (windows.FindIndex(x => x.Handle == Win32.GetForegroundWindow())+1) % windows.Count;
-                    Windowplacement placement = new Windowplacement();
+                    var placement = new Windowplacement();
                     Win32.GetWindowPlacement(windows[next].Handle, ref placement);
                     if (placement.showCmd == 2)
                     {
                         //the window is hidden so we restore it
                         Win32.ShowWindow(windows[next].Handle, ShowWindowEnum.Restore);
                     }
+                    Thread.Sleep(20);
                     Win32.SetForegroundWindow(windows[next].Handle);
                     return (IntPtr)1;
                 }
-                if (Keys.O == (Keys)vkCode && WinDown)
+                if (Keys.H == (Keys)vkCode)
+                {
+                    var prev = windows.FindIndex(x => x.Handle == Win32.GetForegroundWindow()) - 1 < 0 
+                        ? windows.Count - 1
+                        : windows.FindIndex(x => x.Handle == Win32.GetForegroundWindow()) - 1;
+
+                    var placement = new Windowplacement();
+                    Win32.GetWindowPlacement(windows[prev].Handle, ref placement);
+                    if (placement.showCmd == 2)
+                    {
+                        //the window is hidden so we restore it
+                        Win32.ShowWindow(windows[prev].Handle, ShowWindowEnum.Restore);
+                    }
+                    Thread.Sleep(20);
+                    Win32.SetForegroundWindow(windows[prev].Handle);
+                    return (IntPtr)1;
+                }
+                if (Keys.O == (Keys)vkCode)
                 {
                     var startInfo = new ProcessStartInfo
                     {
@@ -91,22 +98,6 @@ namespace w3
                     };
 
                     Process.Start(startInfo)?.WaitForExit();
-                }
-                if (Keys.H == (Keys)vkCode && WinDown)
-                {
-                    var prev = windows.FindIndex(x => x.Handle == Win32.GetForegroundWindow()) - 1 < 0 
-                        ? windows.Count - 1
-                        : windows.FindIndex(x => x.Handle == Win32.GetForegroundWindow()) - 1;
-
-                    Windowplacement placement = new Windowplacement();
-                    Win32.GetWindowPlacement(windows[prev].Handle, ref placement);
-                    if (placement.showCmd == 2)
-                    {
-                        //the window is hidden so we restore it
-                        Win32.ShowWindow(windows[prev].Handle, ShowWindowEnum.Restore);
-                    }
-                    Win32.SetForegroundWindow(windows[prev].Handle);
-                    return (IntPtr)1;
                 }
             }
             return CallNextHookEx(_hookID, nCode, wParam, lParam);

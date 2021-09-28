@@ -18,6 +18,8 @@ namespace w3
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(IntPtr hWnd, ShowWindowEnum nCmdShow);
         [DllImport("user32.dll")]
+        public static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
+        [DllImport("user32.dll")]
         public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
@@ -49,6 +51,8 @@ namespace w3
         public static extern System.UInt32 GetWindowLong(IntPtr hWnd, int nIndex);
         [DllImport("user32.dll")]
         public static extern short GetKeyState(int nVirtKey);
+        [DllImport("user32.dll")]
+        internal static extern bool SendMessage(IntPtr hWnd, Int32 msg, Int32 wParam, Int32 lParam);
 
         public delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
     }

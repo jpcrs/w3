@@ -1,31 +1,42 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
+using System.Drawing;
 using System.Windows.Forms;
 using w3;
 using w3.Desktop;
-using w3.Window;
+using w3.Model;
 
-
-var windowList = new WindowList();
-var windows = windowList.GetWindows();
-
-foreach (var win in windows)
-{
-    Console.WriteLine($"{win.Handle} - {win.Name}");
-}
-
-var edgePtr = windows.FirstOrDefault(x => x.Name.Contains("Edge"))?.Handle ?? IntPtr.Zero;
 var manager = new VirtualDesktopManager();
 manager.InitDesktops();
-manager.GoToDesktop(1);
-var desktopIdentifier = DesktopManager.GetDesktopIdByNumber(1);
-Console.WriteLine("dll" + desktopIdentifier);
+
+var notifyIcon = new NotifyIcon();
+var visible = true;
+SetConsoleWindowVisibility(false);
+notifyIcon.DoubleClick += (s, e) =>
+{
+    visible = !visible;
+    SetConsoleWindowVisibility(visible);
+};
+
+notifyIcon.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+notifyIcon.Visible = true;
+notifyIcon.Text = Application.ProductName;
+
+var contextMenu = new ContextMenuStrip();
+contextMenu.Items.Add("Exit", null, (s, e) => { Application.Exit(); });
+notifyIcon.ContextMenuStrip = contextMenu;
 
 InterceptKeys._hookID = InterceptKeys.SetHook(InterceptKeys.HookCallback);
 Application.Run();
 InterceptKeys.UnhookWindowsHookEx(InterceptKeys._hookID);
 
-Console.ReadLine();
+static void SetConsoleWindowVisibility(bool visible)
+{
+    IntPtr hWnd = Win32.FindWindow(null, Console.Title);
+    if (hWnd != IntPtr.Zero)
+    {
+        if (visible) 
+            Win32.ShowWindow(hWnd, ShowWindowEnum.Show); //1 = SW_SHOWNORMAL
+        else 
+            Win32.ShowWindow(hWnd, ShowWindowEnum.Hide); //0 = SW_HIDE
+    }
+}
