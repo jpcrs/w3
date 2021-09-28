@@ -1,44 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using w3.Desktop;
+using w3.Interop;
 using w3.Model;
 using w3.Window;
 
 namespace w3
 {
-    public class InterceptKeys
+    public class KeyInterceptor
     {
-        private const int WH_KEYBOARD_LL = 13;
-        private const int WM_KEYDOWN = 0x0100;
-        private const int WM_KEYUP = 0x0101;
-        private static LowLevelKeyboardProc _proc = HookCallback;
-        public static IntPtr _hookID = IntPtr.Zero;
-        private static readonly WindowList windowList = new();
-        private static readonly VirtualDesktopManager manager = new();
+        public readonly IntPtr HookId;
+        private readonly WindowList _windowList;
+        private readonly DesktopManager _manager;
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
-        public static IntPtr SetHook(LowLevelKeyboardProc proc)
+        public KeyInterceptor(DesktopManager manager, WindowList windowList)
+        {
+            _manager = manager;
+            _windowList = windowList;
+            HookId = SetHook(HookCallback);
+        }
+
+        private IntPtr SetHook(LowLevelKeyboardProc proc)
         {
             using (Process curProcess = Process.GetCurrentProcess())
             using (ProcessModule curModule = curProcess.MainModule)
             {
-                return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
+                return SetWindowsHookEx(Consts.WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
             }
         }
 
-        public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
-        public static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+            if (nCode >= 0 && wParam == (IntPtr)Consts.WM_KEYDOWN)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
-                var windows = windowList.GetWindows().OrderBy(x => x.Handle).ToList();
+                var windows = _windowList.GetWindows().OrderBy(x => x.Handle).ToList();
                 if (!Convert.ToBoolean(Win32.GetKeyState(91) & 0x8000))
                 {
                     return IntPtr.Zero;
@@ -48,11 +50,11 @@ namespace w3
                 {
                     if (Convert.ToBoolean(Win32.GetKeyState(16) & 0x8000))
                     {
-                        manager.MoveWindowToDesktop(vkCode == 48 ? 9 : vkCode-49);
+                        _manager.MoveWindowToDesktop(vkCode == 48 ? 9 : vkCode-49);
                         return (IntPtr)1;
                     }
-                    manager.GoToDesktop(vkCode == 48 ? 9 : vkCode-49);
-                    var windowToFocus = windowList.GetWindows().FirstOrDefault();
+                    _manager.GoToDesktop(vkCode == 48 ? 9 : vkCode-49);
+                    var windowToFocus = _windowList.GetWindows().FirstOrDefault();
                     Win32.SetForegroundWindow(windowToFocus?.Handle ?? Win32.GetForegroundWindow());
                     return (IntPtr)1;
                 }
@@ -100,7 +102,7 @@ namespace w3
                     Process.Start(startInfo)?.WaitForExit();
                 }
             }
-            return CallNextHookEx(_hookID, nCode, wParam, lParam);
+            return CallNextHookEx(HookId, nCode, wParam, lParam);
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
