@@ -82,5 +82,10 @@ namespace w3.Window
 
             return windows;
         }
+
+        public IntPtr GetShellTray()
+        {
+            return Win32.FindWindow("Shell_TrayWnd", null);
+        }
     }
 }

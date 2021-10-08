@@ -57,13 +57,13 @@ namespace w3.Desktop
 
     public class DesktopManager
     {
-		private IVirtualDesktopManagerInternal VirtualDesktopManagerInternal;
+		private readonly IVirtualDesktopManagerInternal VirtualDesktopManagerInternal;
         private readonly WindowList _windowList;
 
         public DesktopManager(WindowList windowList)
         {
-			var shell = (IServiceProvider10)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("C2F03A33-21F5-47FA-B4BB-156362A2F239")));
-			VirtualDesktopManagerInternal = (IVirtualDesktopManagerInternal)shell.QueryService(new Guid("C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B"), typeof(IVirtualDesktopManagerInternal).GUID);
+			var shell = (IServiceProvider10)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("C2F03A33-21F5-47FA-B4BB-156362A2F239"))!)!;
+			VirtualDesktopManagerInternal = (IVirtualDesktopManagerInternal)shell!.QueryService(new Guid("C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B"), typeof(IVirtualDesktopManagerInternal).GUID);
 
             _windowList = windowList;
         }
@@ -78,6 +78,7 @@ namespace w3.Desktop
 
 		public void GoToWorkspace(int index)
         {
+			_ = Win32.SetForegroundWindow(_windowList.GetShellTray());
 			VirtualDesktopInterop.GoToDesktopNumber(index);
             var windowList = _windowList.GetWindows().OrderBy(x => x.Handle).ToList();
             var windowToFocus = _windowList.GetWindows().FirstOrDefault();

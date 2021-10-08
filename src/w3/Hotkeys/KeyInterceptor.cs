@@ -5,18 +5,19 @@ using System.Windows.Forms;
 using w3.Desktop;
 using w3.Interop;
 
-namespace w3
+namespace w3.Hotkeys
 {
     public class KeyInterceptor
     {
         public readonly IntPtr HookId;
-        private readonly DesktopManager _manager;
+        private readonly ConfigParser _configParser;
+
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
-        public KeyInterceptor(DesktopManager manager)
+        public KeyInterceptor(ConfigParser configParser)
         {
-            _manager = manager;
             HookId = SetHook(HookCallback);
+            _configParser = configParser;
         }
 
         private IntPtr SetHook(LowLevelKeyboardProc proc)
@@ -28,39 +29,37 @@ namespace w3
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && wParam == (IntPtr)Consts.WM_KEYDOWN)
+
+            if (!(nCode >= 0 && wParam == (IntPtr)Consts.WM_KEYDOWN))
             {
-                int vkCode = Marshal.ReadInt32(lParam);
-                if (!Convert.ToBoolean(Win32.GetKeyState(91) & 0x8000))
-                {
-                    return IntPtr.Zero;
-                }
+                return IntPtr.Zero;
+            }
 
-                if (vkCode >= 48 && vkCode <= 57)
-                {
-                    if (Convert.ToBoolean(Win32.GetKeyState(16) & 0x8000))
-                    {
-                        _manager.MoveWindowToWorkspace(vkCode == 48 ? 9 : vkCode-49);
-                        return (IntPtr)1;
-                    }
-                    _manager.GoToWorkspace(vkCode == 48 ? 9 : vkCode-49);
-                    return (IntPtr)1;
-                }
+            int vkCode = Marshal.ReadInt32(lParam);
+            var command = "";
+            if (Convert.ToBoolean(Win32.GetKeyState(91) & 0x8000))
+            {
+                command += "$mod";
+            }
+            if (Convert.ToBoolean(Win32.GetKeyState(16) & 0x8000))
+            {
+                command += "+shift";
+            }
+            if (vkCode >= 48 && vkCode <= 57)
+            {
+                var num = vkCode == 48 ? 0 : (vkCode - 49)+1;
+                command += "+"+num.ToString();
+            }
+            else
+            {
+                var key = ((Keys)vkCode).ToString();
+                command += $"+{key}";
+            }
 
-                if (Keys.L == (Keys)vkCode)
-                {
-                    _manager.FocusOnRightWindow();
-                    return (IntPtr)1;
-                }
-                if (Keys.H == (Keys)vkCode)
-                {
-                    _manager.FocusOnLeftWindow();
-                    return (IntPtr)1;
-                }
-                if (Keys.O == (Keys)vkCode)
-                {
-                    DesktopManager.SwapWindowsLockScreen();
-                }
+            var executed = _configParser.ExecuteCommand(command);
+            if (executed)
+            {
+                return (IntPtr)1;
             }
             return CallNextHookEx(HookId, nCode, wParam, lParam);
         }

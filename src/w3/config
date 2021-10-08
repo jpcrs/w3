@@ -1,0 +1,26 @@
+bindsym $Mod+1 workspacenumber1
+bindsym $Mod+2 workspacenumber2
+bindsym $Mod+3 workspacenumber3
+bindsym $Mod+4 workspacenumber4
+bindsym $Mod+5 workspacenumber5
+bindsym $Mod+6 workspacenumber6
+bindsym $Mod+7 workspacenumber7
+bindsym $Mod+8 workspacenumber8
+bindsym $Mod+9 workspacenumber9
+bindsym $Mod+0 workspacenumber10
+
+bindsym $Mod+Shift+1 movecontainertoworkspacenumber1
+bindsym $Mod+Shift+2 movecontainertoworkspacenumber2
+bindsym $Mod+Shift+3 movecontainertoworkspacenumber3
+bindsym $Mod+Shift+4 movecontainertoworkspacenumber4
+bindsym $Mod+Shift+5 movecontainertoworkspacenumber5
+bindsym $Mod+Shift+6 movecontainertoworkspacenumber6
+bindsym $Mod+Shift+7 movecontainertoworkspacenumber7
+bindsym $Mod+Shift+8 movecontainertoworkspacenumber8
+bindsym $Mod+Shift+9 movecontainertoworkspacenumber9
+bindsym $Mod+Shift+0 movecontainertoworkspacenumber10
+
+bindsym $Mod+h focusleft
+bindsym $Mod+l focusright
+
+bindsym $Mod+o togglewindowslock
