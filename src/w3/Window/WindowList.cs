@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
+using System.Windows;
 using w3.Interop;
 using w3.Model;
 
@@ -9,6 +11,9 @@ namespace w3.Window
 {
     public class WindowList
     {
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr hWndChildAfter, string className,  string windowTitle);
+
         private bool IsCloacked(IntPtr hwnd)
         {
             Win32.DwmGetWindowAttribute(hwnd, (int)DwmWindowAttribute.DWMWA_CLOAKED, out bool isCloacked, Marshal.SizeOf(typeof(bool)));
@@ -86,6 +91,15 @@ namespace w3.Window
         public IntPtr GetShellTray()
         {
             return Win32.FindWindow("Shell_TrayWnd", null);
+        }
+
+        public IntPtr GetTaskBar()
+        {
+            var shellTray = GetShellTray();
+            var hWndRebar = FindWindowEx(shellTray, (IntPtr)0, "ReBarWindow32", null);
+            var hWndMSTaskSwWClass = FindWindowEx(hWndRebar, (IntPtr)0, "MSTaskSwWClass", null);
+            var hWndMSTaskListWClass = FindWindowEx(hWndMSTaskSwWClass, (IntPtr)0, "MSTaskListWClass", null);
+            return hWndMSTaskListWClass;
         }
     }
 }

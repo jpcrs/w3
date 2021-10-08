@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
 using w3.Interop;
 using w3.Model;
 using w3.Window;
@@ -58,13 +59,14 @@ namespace w3.Desktop
     public class DesktopManager
     {
 		private readonly IVirtualDesktopManagerInternal VirtualDesktopManagerInternal;
+        private readonly Form _bar;
         private readonly WindowList _windowList;
 
-        public DesktopManager(WindowList windowList)
+        public DesktopManager(Form bar, WindowList windowList)
         {
 			var shell = (IServiceProvider10)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("C2F03A33-21F5-47FA-B4BB-156362A2F239"))!)!;
 			VirtualDesktopManagerInternal = (IVirtualDesktopManagerInternal)shell!.QueryService(new Guid("C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B"), typeof(IVirtualDesktopManagerInternal).GUID);
-
+            _bar = bar;
             _windowList = windowList;
         }
 
@@ -82,6 +84,7 @@ namespace w3.Desktop
 			VirtualDesktopInterop.GoToDesktopNumber(index);
             var windowList = _windowList.GetWindows().OrderBy(x => x.Handle).ToList();
             var windowToFocus = _windowList.GetWindows().FirstOrDefault();
+			_ = Win32.SetForegroundWindow(_bar.Handle);
             _ = Win32.SetForegroundWindow(windowToFocus?.Handle ?? Win32.GetForegroundWindow());
         }
 

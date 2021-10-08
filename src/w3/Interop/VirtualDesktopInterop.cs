@@ -31,5 +31,8 @@ namespace w3.Interop
 
         [DllImport("tools/VirtualDesktopAccessor.dll")]
         public static extern IntPtr ViewGetFocused();
+
+        [DllImport("tools/VirtualDesktopAccessor.dll")]
+        public static extern int GetCurrentDesktopNumber();
     }
 }
