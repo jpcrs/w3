@@ -33,7 +33,6 @@ namespace w3.Graph
         const long WS_EX_TOPMOST = 0x00000008L;
         private readonly WindowList _windowList;
         private Label _label;
-        private readonly Dictionary<int, string> windowsByDesktop = new Dictionary<int, string>();
 
         public enum GWL : int
         {
@@ -85,34 +84,36 @@ namespace w3.Graph
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            var currentDesktop = VirtualDesktopInterop.GetCurrentDesktopNumber();
+            _label.Text = "";
+            foreach (var window in _windowList.GetWindows().OrderBy(x => x.Handle).OrderBy(x => x.DesktopNumber))
+            {
+                if (window.DesktopNumber == -1)
+                    continue;
+                if (!_label.Text.Contains((window.DesktopNumber+1).ToString()))
+                {
+                    if (_label.Text != "")
+                        _label.Text += " | ";
+                    _label.Text += $"{window.DesktopNumber+1} - ";
+                }
 
-            if (!windowsByDesktop.ContainsKey(currentDesktop))
-            {
-                windowsByDesktop[currentDesktop] = currentDesktop.ToString() + " - ";
-            }
-            foreach (var window in _windowList.GetWindows().OrderBy(x => x.Handle))
-            {
-                if (window.Name.Contains("Visual Studio"))
+                if (window.ProcessName.Equals("telegram.exe",  StringComparison.OrdinalIgnoreCase))
                 {
-                    windowsByDesktop[currentDesktop] += "VS ";
+                    _label.Text += "T ";
                 }
-                else if (window.Name.Contains("Edge"))
+                else if (window.ProcessName.Equals("msedge.exe",  StringComparison.OrdinalIgnoreCase))
                 {
-                    windowsByDesktop[currentDesktop] += "I ";
+                    _label.Text += "I ";
                 }
-                else if (window.Name.Contains("WhatsApp"))
+                else if (window.ProcessName.Equals("whatsapp.exe",  StringComparison.OrdinalIgnoreCase))
                 {
-                    windowsByDesktop[currentDesktop] += "W ";
+                    _label.Text += "W ";
                 }
                 else
                 {
-                    windowsByDesktop[currentDesktop] += "? ";
+                    Console.WriteLine($"{window.ProcessName} - {window.Name}");
+                    _label.Text += "? ";
                 }
             }
-
-            _label.Text = windowsByDesktop[currentDesktop] + " | ";
-            windowsByDesktop.Remove(currentDesktop);
         }
 
         private void MakeFormInvisible(object sender, EventArgs e)

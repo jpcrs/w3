@@ -12,11 +12,16 @@ namespace w3.Model
 
         public string Name { get; private set; }
 
-        public DetectedWindow(IntPtr handle, Rect bounds, string name)
+        public int DesktopNumber { get; private set; }
+        public string ProcessName { get; private set; }
+
+        public DetectedWindow(IntPtr handle, Rect bounds, string name, int desktopNumber, string processName)
         {
             Handle = handle;
             Bounds = bounds;
             Name = name;
+            DesktopNumber = desktopNumber;
+            ProcessName = processName;
         }
     }
 

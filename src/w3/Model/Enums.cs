@@ -23,6 +23,13 @@ namespace w3.Model
         DWMWA_LAST
     }
 
+    public enum DwmGetWindowAttribute
+    {
+        DWM_CLOAKED_APP = 1,
+        DWM_CLOAKED_SHELL = 2,
+        DWM_CLOAKED_INHERITED = 4
+    }
+
     public enum ShowWindowEnum
     {
         Hide = 0,

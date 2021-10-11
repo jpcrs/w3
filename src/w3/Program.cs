@@ -5,6 +5,7 @@ using w3;
 using w3.Desktop;
 using w3.Graph;
 using w3.Hotkeys;
+using w3.Interop;
 using w3.Window;
 
 var windowList = new WindowList();

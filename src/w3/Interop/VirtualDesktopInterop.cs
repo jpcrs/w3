@@ -34,5 +34,8 @@ namespace w3.Interop
 
         [DllImport("tools/VirtualDesktopAccessor.dll")]
         public static extern int GetCurrentDesktopNumber();
+
+        [DllImport("tools/VirtualDesktopAccessor.dll")]
+        public static extern int GetWindowDesktopNumber(IntPtr hwnd);
     }
 }
